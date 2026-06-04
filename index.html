@@ -3,45 +3,112 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lector QR</title>
+  <title>Restaurante Escolar — IED Integrada de Cabrera</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <style>
     :root {
-      --bg: #0E0E10; --surface: #18181C; --surface2: #222228;
-      --border: #2C2C34; --accent: #C8F56A;
-      --text: #F0F0EC; --text2: #74747E; --text3: #3A3A42; --red: #FF5B5B;
+      --bg:       #100A0A;
+      --surface:  #1C1010;
+      --surface2: #261616;
+      --border:   #3D2020;
+      --red:      #C41E1E;
+      --red-dim:  rgba(196,30,30,0.15);
+      --red-glow: rgba(196,30,30,0.3);
+      --cream:    #F5EDD0;
+      --cream2:   #C9B99A;
+      --green:    #2DA05A;
+      --green-dim:rgba(45,160,90,0.12);
+      --warn:     #E07B00;
+      --warn-dim: rgba(224,123,0,0.12);
+      --text:     #F0E8D8;
+      --text2:    #8A7060;
+      --text3:    #4A2E2E;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
     body {
       font-family: 'DM Sans', sans-serif;
-      background: var(--bg); color: var(--text);
+      background: var(--bg);
+      color: var(--text);
       display: flex; flex-direction: column;
       max-width: 480px; margin: 0 auto; height: 100%;
     }
+
+    /* ── HEADER ── */
     header {
-      padding: 1rem 1.25rem 0.75rem;
+      background: var(--red);
+      padding: 0.875rem 1.25rem;
       display: flex; justify-content: space-between; align-items: center;
       flex-shrink: 0;
+      border-bottom: 2px solid rgba(0,0,0,0.2);
     }
-    .brand { display: flex; align-items: center; gap: 0.625rem; }
-    .brand-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; }
-    .brand-dot.recording { animation: pulse 1s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    h1 { font-size: 1rem; font-weight: 700; }
+    .brand { display: flex; align-items: center; gap: 0.75rem; }
+    .brand-seal {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--cream);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .brand-name {
+      font-size: 0.82rem; font-weight: 700;
+      color: var(--cream); line-height: 1.25;
+    }
+    .brand-sub {
+      font-size: 0.65rem; color: rgba(245,237,208,0.65);
+      margin-top: 0.1rem;
+    }
+    .brand-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--cream); opacity: 0.5; flex-shrink: 0;
+    }
+    .brand-dot.recording { opacity: 1; animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+
+    /* ── BUTTONS ── */
     .btn {
       padding: 0.45rem 0.875rem; border-radius: 8px;
       font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 600;
       cursor: pointer; border: none; transition: all 0.15s;
     }
-    .btn-accent { background: var(--accent); color: #0E0E10; }
-    .btn-ghost { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
-    .btn-danger { background: rgba(255,91,91,0.12); color: var(--red); border: 1px solid rgba(255,91,91,0.2); }
+    .btn-cream {
+      background: var(--cream); color: var(--red);
+    }
+    .btn-cream:hover { background: #fff; }
+    .btn-ghost {
+      background: rgba(245,237,208,0.12); color: var(--cream);
+      border: 1px solid rgba(245,237,208,0.25);
+    }
+    .btn-ghost:hover { background: rgba(245,237,208,0.2); }
+    .btn-danger {
+      background: rgba(255,91,91,0.12); color: #FF7070;
+      border: 1px solid rgba(255,91,91,0.2);
+    }
 
+    /* ── DATE BAR ── */
+    .date-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.45rem 1.25rem;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0;
+    }
+    .date-bar span {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem; color: var(--text2);
+    }
+    .date-bar .counter {
+      font-size: 0.7rem; color: var(--cream2);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 0.15rem 0.5rem; border-radius: 999px;
+    }
+
+    /* ── CAMERA ── */
     .cam-wrap {
-      margin: 0 1.25rem; border-radius: 14px;
-      overflow: hidden; border: 1px solid var(--border);
+      margin: 0.875rem 1.25rem 0;
+      border-radius: 14px; overflow: hidden;
+      border: 1.5px solid var(--border);
       background: #000; flex-shrink: 0;
     }
     #reader { width: 100%; }
@@ -49,149 +116,201 @@
     #reader img { display: none !important; }
     #reader__scan_region { background: transparent !important; }
     #reader__dashboard { display: none !important; }
-
     .cam-placeholder {
       aspect-ratio: 4/3;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       gap: 0.75rem; cursor: pointer;
+      background: var(--surface2);
     }
-    .cam-placeholder-icon { font-size: 2.5rem; }
-    .cam-placeholder p { font-size: 0.85rem; color: #aaa; }
+    .cam-placeholder-icon { font-size: 2.5rem; opacity: 0.5; }
+    .cam-placeholder p { font-size: 0.85rem; color: var(--text2); }
+    .cam-placeholder .tap-hint {
+      font-size: 0.75rem; color: var(--red);
+      background: var(--red-dim);
+      border: 1px solid var(--red-glow);
+      padding: 0.3rem 0.75rem; border-radius: 999px;
+    }
 
+    /* ── STATUS ── */
     .status-bar {
-      margin: 0.75rem 1.25rem 0; border-radius: 10px;
-      padding: 0.875rem 1rem; transition: all 0.2s;
-      flex-shrink: 0; min-height: 64px;
+      margin: 0.625rem 1.25rem 0; border-radius: 10px;
+      padding: 0.75rem 1rem; transition: all 0.25s;
+      flex-shrink: 0; min-height: 60px;
       display: flex; align-items: center; gap: 0.875rem;
     }
-    .status-bar.idle { background: var(--surface); border: 1px solid var(--border); }
-    .status-bar.ok { background: rgba(200,245,106,0.1); border: 1px solid rgba(200,245,106,0.25); }
-    .status-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .status-bar.idle    { background: var(--surface); border: 1px solid var(--border); }
+    .status-bar.ok      { background: var(--green-dim); border: 1px solid rgba(45,160,90,0.3); }
+    .status-bar.waiting { background: var(--red-dim); border: 1px solid var(--red-glow); }
+    .status-icon { font-size: 1.3rem; flex-shrink: 0; }
     .status-text { flex: 1; min-width: 0; }
     .status-code {
-      font-family: 'DM Mono', monospace; font-size: 0.92rem; font-weight: 500;
+      font-family: 'DM Mono', monospace; font-size: 0.9rem; font-weight: 500;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .status-code.idle { color: var(--text2); }
-    .status-code.ok { color: var(--accent); }
-    .status-time { font-size: 0.72rem; color: var(--text2); margin-top: 0.125rem; }
+    .status-code.ok   { color: #4ADE80; }
+    .status-code.waiting { color: var(--cream); }
+    .status-time { font-size: 0.7rem; color: var(--text2); margin-top: 0.125rem; }
 
+    /* ── LOG ── */
     .log-header {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 0.875rem 1.25rem 0.5rem; flex-shrink: 0;
+      padding: 0.75rem 1.25rem 0.375rem; flex-shrink: 0;
     }
-    .log-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text2); }
+    .log-label {
+      font-size: 0.65rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em; color: var(--text2);
+    }
     .log-count {
-      font-family: 'DM Mono', monospace; font-size: 0.7rem;
+      font-family: 'DM Mono', monospace; font-size: 0.68rem;
       background: var(--surface2); border: 1px solid var(--border);
-      color: var(--text2); padding: 0.2rem 0.5rem; border-radius: 999px;
+      color: var(--cream2); padding: 0.18rem 0.5rem; border-radius: 999px;
     }
-    .log-list { flex: 1; overflow-y: auto; padding: 0 1.25rem 1rem; }
+    .log-list { flex: 1; overflow-y: auto; padding: 0 1.25rem 0.5rem; }
+    .log-list::-webkit-scrollbar { width: 3px; }
+    .log-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
     .log-item {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 0.6rem 0; border-bottom: 1px solid var(--border); gap: 0.75rem;
+      padding: 0.55rem 0; border-bottom: 1px solid var(--border); gap: 0.75rem;
     }
     .log-item:last-child { border-bottom: none; }
     .log-code {
-      font-family: 'DM Mono', monospace; font-size: 0.82rem;
-      flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-family: 'DM Mono', monospace; font-size: 0.8rem;
+      flex: 1; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      color: var(--text);
     }
     .log-meta { flex-shrink: 0; text-align: right; }
-    .log-time { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--accent); }
-    .log-date { font-size: 0.65rem; color: var(--text3); margin-top: 0.1rem; }
-    .empty-log { padding: 2rem 0; text-align: center; color: var(--text2); font-size: 0.82rem; }
+    .log-time { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--cream2); }
+    .log-date { font-size: 0.63rem; color: var(--text3); margin-top: 0.1rem; }
+    .empty-log { padding: 1.5rem 0; text-align: center; color: var(--text2); font-size: 0.82rem; }
 
+    /* ── BOTTOM BAR ── */
+    .bottom-bar {
+      padding: 0.625rem 1.25rem 0.875rem;
+      display: flex; gap: 0.5rem;
+      border-top: 1px solid var(--border); flex-shrink: 0;
+    }
+    .bottom-bar .btn { flex: 1; padding: 0.65rem; font-size: 0.8rem; }
+
+    /* ── DUPLICATE MODAL ── */
     .modal-overlay {
-      display: none;
-      position: fixed; inset: 0; z-index: 999;
-      background: rgba(0,0,0,0.85);
-      align-items: center; justify-content: center;
-      padding: 1.5rem;
+      display: none; position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,0.88);
+      align-items: center; justify-content: center; padding: 1.25rem;
     }
     .modal-overlay.visible { display: flex; }
     .modal {
-      background: #1E1A1A;
-      border: 1.5px solid rgba(255,91,91,0.4);
+      background: var(--surface);
+      border: 1.5px solid var(--red-glow);
       border-radius: 16px;
-      padding: 1.75rem 1.5rem;
-      width: 100%; max-width: 360px;
-      text-align: center;
+      padding: 1.75rem 1.5rem 1.5rem;
+      width: 100%; max-width: 360px; text-align: center;
     }
-    .modal-icon { font-size: 3rem; margin-bottom: 0.75rem; }
-    .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--red); margin-bottom: 0.5rem; }
+    .modal-badge {
+      display: inline-flex; align-items: center; gap: 0.375rem;
+      background: var(--red-dim); border: 1px solid var(--red-glow);
+      border-radius: 999px; padding: 0.3rem 0.875rem;
+      font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: #FF8080; margin-bottom: 1rem;
+    }
+    .modal-icon { font-size: 2.75rem; margin-bottom: 0.625rem; }
+    .modal-title {
+      font-size: 1rem; font-weight: 700;
+      color: var(--cream); margin-bottom: 0.375rem;
+      line-height: 1.3;
+    }
     .modal-code {
-      font-family: 'DM Mono', monospace;
-      font-size: 1rem; font-weight: 500;
+      font-family: 'DM Mono', monospace; font-size: 1.1rem; font-weight: 500;
       background: var(--surface2); border: 1px solid var(--border);
       border-radius: 8px; padding: 0.625rem 1rem;
-      margin: 0.75rem 0; color: var(--text);
-      word-break: break-all;
+      margin: 0.75rem 0; color: var(--cream); word-break: break-all;
     }
-    .modal-sub { font-size: 0.82rem; color: var(--text2); margin-bottom: 1.25rem; line-height: 1.5; }
+    .modal-msg {
+      font-size: 0.82rem; color: var(--text2);
+      line-height: 1.55; margin-bottom: 1.25rem;
+    }
+    .modal-msg strong { color: var(--cream2); }
     .btn-modal {
       width: 100%; padding: 0.875rem;
-      background: var(--red); color: white;
+      background: var(--red); color: var(--cream);
       border: none; border-radius: 10px;
       font-family: 'DM Sans', sans-serif;
       font-size: 0.95rem; font-weight: 700;
       cursor: pointer; transition: opacity 0.15s;
+      letter-spacing: 0.01em;
     }
     .btn-modal:hover { opacity: 0.88; }
-
-    .bottom-bar {
-      padding: 0.75rem 1.25rem; display: flex; gap: 0.5rem;
-      border-top: 1px solid var(--border); flex-shrink: 0;
-    }
-    .bottom-bar .btn { flex: 1; padding: 0.65rem; font-size: 0.82rem; }
   </style>
 </head>
 <body>
 
+  <!-- HEADER -->
   <header>
     <div class="brand">
-      <div class="brand-dot" id="rec-dot"></div>
-      <h1>Lector QR</h1>
+      <div class="brand-seal">🏫</div>
+      <div>
+        <div class="brand-name">IED Integrada de Cabrera</div>
+        <div class="brand-sub">Restaurante Escolar · Control de ingreso</div>
+      </div>
     </div>
-    <button class="btn btn-ghost" id="toggle-btn" onclick="toggleCamera()">▶ Iniciar</button>
+    <div style="display:flex;align-items:center;gap:0.625rem">
+      <div class="brand-dot" id="rec-dot"></div>
+      <button class="btn btn-ghost" id="toggle-btn" onclick="toggleCamera()">▶ Iniciar</button>
+    </div>
   </header>
 
+  <!-- DATE BAR -->
+  <div class="date-bar">
+    <span id="today-date"></span>
+    <span class="counter" id="counter-bar">0 ingresos hoy</span>
+  </div>
+
+  <!-- CAMERA -->
   <div class="cam-wrap">
     <div id="reader">
       <div class="cam-placeholder" onclick="toggleCamera()">
         <div class="cam-placeholder-icon">📷</div>
-        <p>Toque para activar la cámara</p>
+        <p>Cámara inactiva</p>
+        <div class="tap-hint">Toque para iniciar escaneo</div>
       </div>
     </div>
   </div>
 
+  <!-- STATUS -->
   <div class="status-bar idle" id="status-bar">
     <div class="status-icon">⬜</div>
     <div class="status-text">
-      <div class="status-code idle" id="status-code">Esperando código…</div>
+      <div class="status-code idle" id="status-code">Esperando escaneo…</div>
       <div class="status-time" id="status-time">Active la cámara para comenzar</div>
     </div>
   </div>
 
+  <!-- LOG -->
   <div class="log-header">
-    <span class="log-label">Registros de sesión</span>
+    <span class="log-label">Ingresos registrados</span>
     <span class="log-count" id="log-count">0</span>
   </div>
   <div class="log-list" id="log-list">
-    <div class="empty-log">Los códigos escaneados aparecerán aquí</div>
+    <div class="empty-log">Los ingresos aparecerán aquí al escanear</div>
   </div>
 
+  <!-- BOTTOM BAR -->
   <div class="bottom-bar">
-    <button class="btn btn-danger" onclick="clearLog()">Borrar</button>
-    <button class="btn btn-accent" onclick="downloadCSV()">⬇ Descargar CSV</button>
+    <button class="btn btn-danger" onclick="clearLog()">Borrar lista</button>
+    <button class="btn btn-cream" onclick="downloadCSV()">⬇ Descargar CSV</button>
   </div>
 
+  <!-- DUPLICATE MODAL -->
   <div class="modal-overlay" id="dup-overlay">
     <div class="modal">
-      <div class="modal-icon">⛔</div>
-      <div class="modal-title">Código ya registrado</div>
+      <div class="modal-badge">⚠ Ingreso duplicado</div>
+      <div class="modal-icon">🚫</div>
+      <div class="modal-title">Este estudiante ya registró su ingreso hoy</div>
       <div class="modal-code" id="dup-code"></div>
-      <div class="modal-sub" id="dup-sub"></div>
+      <div class="modal-msg" id="dup-msg"></div>
       <button class="btn-modal" onclick="closeDupModal()">Entendido — Continuar</button>
     </div>
   </div>
@@ -204,10 +323,23 @@
   let lastTime = 0;
   const DEBOUNCE = 2500;
 
+  // Date bar
+  function updateDateBar() {
+    const now = new Date();
+    document.getElementById('today-date').textContent =
+      now.toLocaleDateString('es', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  }
+  updateDateBar();
+
   function placeholder() {
-    return '<div class="cam-placeholder" onclick="toggleCamera()"><div class="cam-placeholder-icon">📷</div><p>Toque para activar la cámara</p></div>';
+    return `<div class="cam-placeholder" onclick="toggleCamera()">
+      <div class="cam-placeholder-icon">📷</div>
+      <p>Cámara inactiva</p>
+      <div class="tap-hint">Toque para iniciar escaneo</div>
+    </div>`;
   }
 
+  // ── CAMERA ──
   async function toggleCamera() {
     if (running) { await stopCamera(); return; }
     document.getElementById('reader').innerHTML = '';
@@ -222,7 +354,7 @@
       running = true;
       document.getElementById('rec-dot').classList.add('recording');
       document.getElementById('toggle-btn').textContent = '⏹ Detener';
-      setStatus('idle', '—', 'Apunte a un código QR');
+      setStatus('idle', '—', 'Apunte el código QR del estudiante');
     } catch (e) {
       console.error('Camera error:', e);
       alert('No se pudo iniciar la cámara:\n' + e);
@@ -236,15 +368,15 @@
     document.getElementById('rec-dot').classList.remove('recording');
     document.getElementById('toggle-btn').textContent = '▶ Iniciar';
     document.getElementById('reader').innerHTML = placeholder();
-    setStatus('idle', 'Esperando código…', 'Active la cámara para comenzar');
+    setStatus('idle', 'Esperando escaneo…', 'Active la cámara para comenzar');
   }
 
+  // ── SCAN ──
   function onScan(value) {
     const now = Date.now();
     if (value === lastCode && (now - lastTime) < DEBOUNCE) return;
     lastCode = value; lastTime = now;
 
-    // Check for duplicate
     const existing = records.find(r => r.value === value);
     if (existing) {
       showDupModal(value, existing.ts);
@@ -254,19 +386,22 @@
     const ts = new Date();
     records.unshift({ value, ts: ts.toISOString() });
     const timeStr = ts.toLocaleTimeString('es', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-    const dateStr = ts.toLocaleDateString('es', { day:'2-digit', month:'short', year:'numeric' });
-    setStatus('ok', value, timeStr + ' · ' + dateStr);
-    beep();
+    const dateStr = ts.toLocaleDateString('es', { day:'2-digit', month:'short' });
+    setStatus('ok', value, 'Ingreso registrado · ' + timeStr);
+    beepOk();
     renderLog();
-    setTimeout(() => { if (running) setStatus('idle', '—', 'Apunte a un código QR'); }, 2000);
+    setTimeout(() => { if (running) setStatus('idle', '—', 'Apunte el código QR del estudiante'); }, 2500);
   }
 
+  // ── DUPLICATE MODAL ──
   function showDupModal(value, originalTs) {
     try { if (scanner) scanner.pause(); } catch(e) {}
     const t = new Date(originalTs);
     const timeStr = t.toLocaleTimeString('es', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
     document.getElementById('dup-code').textContent = value;
-    document.getElementById('dup-sub').textContent = 'Este código ya fue registrado hoy a las ' + timeStr + '. No se guardará nuevamente.';
+    document.getElementById('dup-msg').innerHTML =
+      'El ingreso de este estudiante fue registrado hoy a las <strong>' + timeStr + '</strong>.<br><br>' +
+      'Si el estudiante asegura no haber ingresado, comuníquese con el docente encargado.';
     document.getElementById('dup-overlay').classList.add('visible');
     beepDup();
   }
@@ -276,19 +411,23 @@
     try { if (scanner) scanner.resume(); } catch(e) {}
   }
 
+  // ── UI ──
   function setStatus(type, code, time) {
     document.getElementById('status-bar').className = 'status-bar ' + type;
     const c = document.getElementById('status-code');
     c.className = 'status-code ' + type;
     c.textContent = code;
     document.getElementById('status-time').textContent = time;
-    document.querySelector('#status-bar .status-icon').textContent = type === 'ok' ? '✅' : '⬜';
+    const icons = { idle:'⬜', ok:'✅', waiting:'⏳' };
+    document.querySelector('#status-bar .status-icon').textContent = icons[type] || '⬜';
   }
 
   function renderLog() {
-    document.getElementById('log-count').textContent = records.length;
+    const count = records.length;
+    document.getElementById('log-count').textContent = count;
+    document.getElementById('counter-bar').textContent = count + (count === 1 ? ' ingreso hoy' : ' ingresos hoy');
     const el = document.getElementById('log-list');
-    if (!records.length) { el.innerHTML = '<div class="empty-log">Los códigos escaneados aparecerán aquí</div>'; return; }
+    if (!count) { el.innerHTML = '<div class="empty-log">Los ingresos aparecerán aquí al escanear</div>'; return; }
     el.innerHTML = records.map(r => {
       const t = new Date(r.ts);
       return `<div class="log-item">
@@ -302,13 +441,14 @@
   }
 
   function clearLog() {
-    if (records.length && !confirm('¿Borrar todos los registros?')) return;
-    records = []; renderLog();
+    if (records.length && !confirm('¿Borrar todos los registros de hoy?')) return;
+    records = [];
+    renderLog();
   }
 
   function downloadCSV() {
-    if (!records.length) { alert('No hay registros para descargar.'); return; }
-    const rows = [['Código','Fecha','Hora']];
+    if (!records.length) { alert('No hay ingresos registrados para descargar.'); return; }
+    const rows = [['Código Estudiante','Fecha','Hora']];
     records.forEach(r => {
       const t = new Date(r.ts);
       rows.push([r.value, t.toLocaleDateString('es'), t.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit',second:'2-digit'})]);
@@ -318,35 +458,39 @@
     const stamp = now.getFullYear()+'-'+p2(now.getMonth()+1)+'-'+p2(now.getDate())+'_'+p2(now.getHours())+'-'+p2(now.getMinutes());
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));
-    a.download = 'registro_'+stamp+'.csv'; a.click();
+    a.download = 'ingresos_restaurante_'+stamp+'.csv';
+    a.click();
   }
 
-  function beep() {
+  // ── AUDIO ──
+  function beepOk() {
     try {
       const ctx = new (window.AudioContext||window.webkitAudioContext)();
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.connect(g); g.connect(ctx.destination);
       o.frequency.value = 1047; o.type = 'sine';
       g.gain.setValueAtTime(0.2, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.1);
-      o.start(); o.stop(ctx.currentTime+0.1);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.12);
+      o.start(); o.stop(ctx.currentTime+0.12);
     } catch(e) {}
   }
 
   function beepDup() {
     try {
       const ctx = new (window.AudioContext||window.webkitAudioContext)();
-      [300, 250].forEach((freq, i) => {
+      [350, 280].forEach((freq, i) => {
         const o = ctx.createOscillator(), g = ctx.createGain();
         o.connect(g); g.connect(ctx.destination);
         o.frequency.value = freq; o.type = 'square';
-        g.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.18);
-        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.15);
-        o.start(ctx.currentTime + i * 0.18);
-        o.stop(ctx.currentTime + i * 0.18 + 0.15);
+        g.gain.setValueAtTime(0.15, ctx.currentTime + i*0.2);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.2 + 0.18);
+        o.start(ctx.currentTime + i*0.2);
+        o.stop(ctx.currentTime + i*0.2 + 0.18);
       });
     } catch(e) {}
   }
+
+  function p2(n) { return String(n).padStart(2,'0'); }
   function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 </script>
 </body>
