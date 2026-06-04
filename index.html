@@ -82,7 +82,7 @@
       flex-shrink: 0;
     }
     #video { width: 100%; height: 100%; object-fit: cover; display: block; }
-    #canvas-hidden { display: none; }
+    #canvas-hidden { position: absolute; left: -9999px; top: -9999px; }
 
     /* scan frame overlay */
     .overlay {
@@ -334,6 +334,7 @@
   // ── SCAN LOOP ──
   function tick() {
     if (!streaming) return;
+    if (Date.now() - lastTime < 100) { raf = requestAnimationFrame(tick); return; }
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas-hidden');
 
@@ -355,7 +356,7 @@
             register(code.data);
           }
         }
-      } catch (e) {}
+      } catch (e) { console.error('jsQR error:', e); }
     }
     raf = requestAnimationFrame(tick);
   }
