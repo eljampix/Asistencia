@@ -317,6 +317,7 @@
 
 <script>
   let records = [];
+  let registeredSet = new Set(); // búsqueda O(1) de duplicados
   let scanner = null;
   let running = false;
   let lastCode = '';
@@ -377,14 +378,16 @@
     if (value === lastCode && (now - lastTime) < DEBOUNCE) return;
     lastCode = value; lastTime = now;
 
-    const existing = records.find(r => r.value === value);
+    const existing = registeredSet.has(value);
     if (existing) {
-      showDupModal(value, existing.ts);
+      const orig = records.find(r => r.value === value);
+      showDupModal(value, orig ? orig.ts : new Date().toISOString());
       return;
     }
 
     const ts = new Date();
     records.unshift({ value, ts: ts.toISOString() });
+    registeredSet.add(value);
     const timeStr = ts.toLocaleTimeString('es', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
     const dateStr = ts.toLocaleDateString('es', { day:'2-digit', month:'short' });
     setStatus('ok', value, 'Ingreso registrado · ' + timeStr);
@@ -428,7 +431,9 @@
     document.getElementById('counter-bar').textContent = count + (count === 1 ? ' ingreso hoy' : ' ingresos hoy');
     const el = document.getElementById('log-list');
     if (!count) { el.innerHTML = '<div class="empty-log">Los ingresos aparecerán aquí al escanear</div>'; return; }
-    el.innerHTML = records.map(r => {
+    const visible = records.slice(0, 50);
+    const hidden = count - visible.length;
+    el.innerHTML = visible.map(r => {
       const t = new Date(r.ts);
       return `<div class="log-item">
         <div class="log-code">${esc(r.value)}</div>
@@ -437,12 +442,13 @@
           <div class="log-date">${t.toLocaleDateString('es',{day:'2-digit',month:'short'})}</div>
         </div>
       </div>`;
-    }).join('');
+    }).join('') + (hidden > 0 ? `<div class="empty-log">+${hidden} registros anteriores — descargue el CSV para verlos todos</div>` : '');
   }
 
   function clearLog() {
     if (records.length && !confirm('¿Borrar todos los registros de hoy?')) return;
     records = [];
+    registeredSet = new Set();
     renderLog();
   }
 
@@ -462,32 +468,41 @@
     a.click();
   }
 
-  // ── AUDIO ──
+  // ── AUDIO (contexto compartido) ──
+  let audioCtx = null;
+  function getAudio() {
+    if (!audioCtx || audioCtx.state === 'closed') {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
   function beepOk() {
     try {
-      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      const ctx = getAudio();
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.connect(g); g.connect(ctx.destination);
       o.frequency.value = 1047; o.type = 'sine';
       g.gain.setValueAtTime(0.2, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.12);
-      o.start(); o.stop(ctx.currentTime+0.12);
-    } catch(e) {}
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+      o.start(); o.stop(ctx.currentTime + 0.12);
+    } catch(e) { console.error('beepOk:', e); }
   }
 
   function beepDup() {
     try {
-      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      const ctx = getAudio();
       [350, 280].forEach((freq, i) => {
         const o = ctx.createOscillator(), g = ctx.createGain();
         o.connect(g); g.connect(ctx.destination);
         o.frequency.value = freq; o.type = 'square';
-        g.gain.setValueAtTime(0.15, ctx.currentTime + i*0.2);
-        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.2 + 0.18);
-        o.start(ctx.currentTime + i*0.2);
-        o.stop(ctx.currentTime + i*0.2 + 0.18);
+        g.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.2);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.2 + 0.18);
+        o.start(ctx.currentTime + i * 0.2);
+        o.stop(ctx.currentTime + i * 0.2 + 0.18);
       });
-    } catch(e) {}
+    } catch(e) { console.error('beepDup:', e); }
   }
 
   function p2(n) { return String(n).padStart(2,'0'); }
