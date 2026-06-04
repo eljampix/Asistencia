@@ -17,7 +17,7 @@
       --text: #F0F0EC;
       --text2: #74747E;
       --text3: #3A3A42;
-      --red: #FF5B20;
+      --red: #FF5B5B;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
@@ -82,7 +82,7 @@
       flex-shrink: 0;
     }
     #video { width: 100%; height: 100%; object-fit: cover; display: block; }
-    #canvas-hidden { position: absolute; left: -9999px; top: -9999px; }
+    #canvas-hidden { display: none; }
 
     /* scan frame overlay */
     .overlay {
@@ -334,7 +334,6 @@
   // ── SCAN LOOP ──
   function tick() {
     if (!streaming) return;
-    if (Date.now() - lastTime < 100) { raf = requestAnimationFrame(tick); return; }
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas-hidden');
 
@@ -356,7 +355,7 @@
             register(code.data);
           }
         }
-      } catch (e) { console.error('jsQR error:', e); }
+      } catch (e) {}
     }
     raf = requestAnimationFrame(tick);
   }
