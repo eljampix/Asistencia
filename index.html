@@ -102,6 +102,43 @@
     .log-date { font-size: 0.65rem; color: var(--text3); margin-top: 0.1rem; }
     .empty-log { padding: 2rem 0; text-align: center; color: var(--text2); font-size: 0.82rem; }
 
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,0.85);
+      align-items: center; justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-overlay.visible { display: flex; }
+    .modal {
+      background: #1E1A1A;
+      border: 1.5px solid rgba(255,91,91,0.4);
+      border-radius: 16px;
+      padding: 1.75rem 1.5rem;
+      width: 100%; max-width: 360px;
+      text-align: center;
+    }
+    .modal-icon { font-size: 3rem; margin-bottom: 0.75rem; }
+    .modal-title { font-size: 1.1rem; font-weight: 700; color: var(--red); margin-bottom: 0.5rem; }
+    .modal-code {
+      font-family: 'DM Mono', monospace;
+      font-size: 1rem; font-weight: 500;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.625rem 1rem;
+      margin: 0.75rem 0; color: var(--text);
+      word-break: break-all;
+    }
+    .modal-sub { font-size: 0.82rem; color: var(--text2); margin-bottom: 1.25rem; line-height: 1.5; }
+    .btn-modal {
+      width: 100%; padding: 0.875rem;
+      background: var(--red); color: white;
+      border: none; border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn-modal:hover { opacity: 0.88; }
+
     .bottom-bar {
       padding: 0.75rem 1.25rem; display: flex; gap: 0.5rem;
       border-top: 1px solid var(--border); flex-shrink: 0;
@@ -147,6 +184,16 @@
   <div class="bottom-bar">
     <button class="btn btn-danger" onclick="clearLog()">Borrar</button>
     <button class="btn btn-accent" onclick="downloadCSV()">⬇ Descargar CSV</button>
+  </div>
+
+  <div class="modal-overlay" id="dup-overlay">
+    <div class="modal">
+      <div class="modal-icon">⛔</div>
+      <div class="modal-title">Código ya registrado</div>
+      <div class="modal-code" id="dup-code"></div>
+      <div class="modal-sub" id="dup-sub"></div>
+      <button class="btn-modal" onclick="closeDupModal()">Entendido — Continuar</button>
+    </div>
   </div>
 
 <script>
@@ -196,6 +243,14 @@
     const now = Date.now();
     if (value === lastCode && (now - lastTime) < DEBOUNCE) return;
     lastCode = value; lastTime = now;
+
+    // Check for duplicate
+    const existing = records.find(r => r.value === value);
+    if (existing) {
+      showDupModal(value, existing.ts);
+      return;
+    }
+
     const ts = new Date();
     records.unshift({ value, ts: ts.toISOString() });
     const timeStr = ts.toLocaleTimeString('es', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
@@ -204,6 +259,21 @@
     beep();
     renderLog();
     setTimeout(() => { if (running) setStatus('idle', '—', 'Apunte a un código QR'); }, 2000);
+  }
+
+  function showDupModal(value, originalTs) {
+    try { if (scanner) scanner.pause(); } catch(e) {}
+    const t = new Date(originalTs);
+    const timeStr = t.toLocaleTimeString('es', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    document.getElementById('dup-code').textContent = value;
+    document.getElementById('dup-sub').textContent = 'Este código ya fue registrado hoy a las ' + timeStr + '. No se guardará nuevamente.';
+    document.getElementById('dup-overlay').classList.add('visible');
+    beepDup();
+  }
+
+  function closeDupModal() {
+    document.getElementById('dup-overlay').classList.remove('visible');
+    try { if (scanner) scanner.resume(); } catch(e) {}
   }
 
   function setStatus(type, code, time) {
@@ -263,7 +333,20 @@
     } catch(e) {}
   }
 
-  function p2(n) { return String(n).padStart(2,'0'); }
+  function beepDup() {
+    try {
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      [300, 250].forEach((freq, i) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = freq; o.type = 'square';
+        g.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.18);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.15);
+        o.start(ctx.currentTime + i * 0.18);
+        o.stop(ctx.currentTime + i * 0.18 + 0.15);
+      });
+    } catch(e) {}
+  }
   function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 </script>
 </body>
