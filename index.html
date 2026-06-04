@@ -5,227 +5,106 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lector QR</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+  <script src="https://raw.githubusercontent.com/mebjas/html5-qrcode/master/minified/html5-qrcode.min.js"></script>
   <style>
     :root {
-      --bg: #0E0E10;
-      --surface: #18181C;
-      --surface2: #222228;
-      --border: #2C2C34;
-      --accent: #C8F56A;
-      --accent-dim: rgba(200,245,106,0.1);
-      --text: #F0F0EC;
-      --text2: #74747E;
-      --text3: #3A3A42;
-      --red: #FF5B5B;
+      --bg: #0E0E10; --surface: #18181C; --surface2: #222228;
+      --border: #2C2C34; --accent: #C8F56A;
+      --text: #F0F0EC; --text2: #74747E; --text3: #3A3A42; --red: #FF5B5B;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
     body {
       font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      max-width: 480px;
-      margin: 0 auto;
-      height: 100%;
+      background: var(--bg); color: var(--text);
+      display: flex; flex-direction: column;
+      max-width: 480px; margin: 0 auto; height: 100%;
     }
-
-    /* HEADER */
     header {
       padding: 1rem 1.25rem 0.75rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: flex; justify-content: space-between; align-items: center;
       flex-shrink: 0;
     }
     .brand { display: flex; align-items: center; gap: 0.625rem; }
-    .brand-dot {
-      width: 10px; height: 10px;
-      background: var(--accent);
-      border-radius: 50%;
-    }
+    .brand-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; }
     .brand-dot.recording { animation: pulse 1s ease-in-out infinite; }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
-    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
     h1 { font-size: 1rem; font-weight: 700; }
-
-    .header-actions { display: flex; gap: 0.5rem; }
     .btn {
-      padding: 0.45rem 0.875rem;
-      border-radius: 8px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.78rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: all 0.15s;
+      padding: 0.45rem 0.875rem; border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.15s;
     }
     .btn-accent { background: var(--accent); color: #0E0E10; }
-    .btn-accent:hover { background: #d9ff7a; }
     .btn-ghost { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
-    .btn-ghost:hover { color: var(--text); }
     .btn-danger { background: rgba(255,91,91,0.12); color: var(--red); border: 1px solid rgba(255,91,91,0.2); }
 
-    /* CAMERA */
     .cam-wrap {
-      margin: 0 1.25rem;
-      position: relative;
-      background: #000;
-      border-radius: 14px;
-      overflow: hidden;
+      margin: 0 1.25rem; border-radius: 14px;
+      overflow: hidden; border: 1px solid var(--border);
+      background: #000; flex-shrink: 0;
+    }
+    #reader { width: 100%; }
+    #reader video { width: 100% !important; border-radius: 0 !important; }
+    #reader img { display: none !important; }
+    #reader__scan_region { background: transparent !important; }
+    #reader__dashboard { display: none !important; }
+
+    .cam-placeholder {
       aspect-ratio: 4/3;
-      border: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    #video { width: 100%; height: 100%; object-fit: cover; display: block; }
-    #canvas-hidden { position: absolute; left: -9999px; top: -9999px; }
-
-    /* scan frame overlay */
-    .overlay {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      pointer-events: none;
-    }
-    .frame {
-      position: relative;
-      width: 160px; height: 160px;
-    }
-    .frame::before {
-      content: '';
-      position: absolute; inset: 0;
-      box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
-      border-radius: 10px;
-    }
-    .corner {
-      position: absolute;
-      width: 18px; height: 18px;
-      border-color: var(--accent);
-      border-style: solid;
-    }
-    .tl { top:0; left:0; border-width: 2.5px 0 0 2.5px; border-radius: 4px 0 0 0; }
-    .tr { top:0; right:0; border-width: 2.5px 2.5px 0 0; border-radius: 0 4px 0 0; }
-    .bl { bottom:0; left:0; border-width: 0 0 2.5px 2.5px; border-radius: 0 0 0 4px; }
-    .br { bottom:0; right:0; border-width: 0 2.5px 2.5px 0; border-radius: 0 0 4px 0; }
-    .scan-beam {
-      position: absolute;
-      left: 4px; right: 4px; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      animation: beam 1.8s ease-in-out infinite;
-      display: none;
-    }
-    @keyframes beam {
-      0%   { top: 6px; opacity: 0; }
-      8%   { opacity: 1; }
-      92%  { opacity: 1; }
-      100% { top: calc(100% - 6px); opacity: 0; }
-    }
-
-    /* START BUTTON overlay */
-    .cam-start {
-      position: absolute; inset: 0;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      gap: 0.75rem;
-      background: rgba(0,0,0,0.7);
-      cursor: pointer;
-      transition: background 0.2s;
+      gap: 0.75rem; cursor: pointer;
     }
-    .cam-start:hover { background: rgba(0,0,0,0.6); }
-    .cam-start-icon { font-size: 2.5rem; }
-    .cam-start p { font-size: 0.85rem; color: #aaa; }
+    .cam-placeholder-icon { font-size: 2.5rem; }
+    .cam-placeholder p { font-size: 0.85rem; color: #aaa; }
 
-    /* STATUS */
     .status-bar {
-      margin: 0.75rem 1.25rem 0;
-      border-radius: 10px;
-      padding: 0.875rem 1rem;
-      transition: all 0.2s;
-      flex-shrink: 0;
-      min-height: 64px;
+      margin: 0.75rem 1.25rem 0; border-radius: 10px;
+      padding: 0.875rem 1rem; transition: all 0.2s;
+      flex-shrink: 0; min-height: 64px;
       display: flex; align-items: center; gap: 0.875rem;
     }
     .status-bar.idle { background: var(--surface); border: 1px solid var(--border); }
-    .status-bar.ok   { background: rgba(200,245,106,0.1); border: 1px solid rgba(200,245,106,0.25); }
+    .status-bar.ok { background: rgba(200,245,106,0.1); border: 1px solid rgba(200,245,106,0.25); }
     .status-icon { font-size: 1.4rem; flex-shrink: 0; }
     .status-text { flex: 1; min-width: 0; }
     .status-code {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.92rem;
-      font-weight: 500;
+      font-family: 'DM Mono', monospace; font-size: 0.92rem; font-weight: 500;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .status-code.idle { color: var(--text2); }
     .status-code.ok { color: var(--accent); }
     .status-time { font-size: 0.72rem; color: var(--text2); margin-top: 0.125rem; }
 
-    /* LOG */
     .log-header {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 0.875rem 1.25rem 0.5rem;
-      flex-shrink: 0;
+      padding: 0.875rem 1.25rem 0.5rem; flex-shrink: 0;
     }
-    .log-label {
-      font-size: 0.68rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.08em;
-      color: var(--text2);
-    }
+    .log-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text2); }
     .log-count {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text2);
-      padding: 0.2rem 0.5rem;
-      border-radius: 999px;
+      font-family: 'DM Mono', monospace; font-size: 0.7rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text2); padding: 0.2rem 0.5rem; border-radius: 999px;
     }
-
-    .log-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0 1.25rem 1rem;
-    }
-    .log-list::-webkit-scrollbar { width: 4px; }
-    .log-list::-webkit-scrollbar-track { background: transparent; }
-    .log-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
+    .log-list { flex: 1; overflow-y: auto; padding: 0 1.25rem 1rem; }
     .log-item {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 0.6rem 0;
-      border-bottom: 1px solid var(--border);
-      gap: 0.75rem;
+      padding: 0.6rem 0; border-bottom: 1px solid var(--border); gap: 0.75rem;
     }
     .log-item:last-child { border-bottom: none; }
     .log-code {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.82rem;
-      flex: 1; min-width: 0;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-family: 'DM Mono', monospace; font-size: 0.82rem;
+      flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .log-meta { flex-shrink: 0; text-align: right; }
-    .log-time {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--accent);
-    }
+    .log-time { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--accent); }
     .log-date { font-size: 0.65rem; color: var(--text3); margin-top: 0.1rem; }
+    .empty-log { padding: 2rem 0; text-align: center; color: var(--text2); font-size: 0.82rem; }
 
-    .empty-log {
-      padding: 2rem 0;
-      text-align: center;
-      color: var(--text2);
-      font-size: 0.82rem;
-    }
-
-    /* BOTTOM BAR */
     .bottom-bar {
-      padding: 0.75rem 1.25rem;
-      display: flex; gap: 0.5rem;
-      border-top: 1px solid var(--border);
-      flex-shrink: 0;
+      padding: 0.75rem 1.25rem; display: flex; gap: 0.5rem;
+      border-top: 1px solid var(--border); flex-shrink: 0;
     }
     .bottom-bar .btn { flex: 1; padding: 0.65rem; font-size: 0.82rem; }
   </style>
@@ -237,31 +116,18 @@
       <div class="brand-dot" id="rec-dot"></div>
       <h1>Lector QR</h1>
     </div>
-    <div class="header-actions">
-      <button class="btn btn-ghost" id="toggle-btn" onclick="toggleCamera()">▶ Iniciar</button>
-    </div>
+    <button class="btn btn-ghost" id="toggle-btn" onclick="toggleCamera()">▶ Iniciar</button>
   </header>
 
-  <!-- CAMERA -->
   <div class="cam-wrap">
-    <video id="video" autoplay playsinline muted></video>
-    <canvas id="canvas-hidden"></canvas>
-    <div class="overlay">
-      <div class="frame">
-        <div class="corner tl"></div>
-        <div class="corner tr"></div>
-        <div class="corner bl"></div>
-        <div class="corner br"></div>
-        <div class="scan-beam" id="beam"></div>
+    <div id="reader">
+      <div class="cam-placeholder" onclick="toggleCamera()">
+        <div class="cam-placeholder-icon">📷</div>
+        <p>Toque para activar la cámara</p>
       </div>
-    </div>
-    <div class="cam-start" id="cam-start" onclick="toggleCamera()">
-      <div class="cam-start-icon">📷</div>
-      <p>Toque para activar la cámara</p>
     </div>
   </div>
 
-  <!-- STATUS -->
   <div class="status-bar idle" id="status-bar">
     <div class="status-icon">⬜</div>
     <div class="status-text">
@@ -270,7 +136,6 @@
     </div>
   </div>
 
-  <!-- LOG -->
   <div class="log-header">
     <span class="log-label">Registros de sesión</span>
     <span class="log-count" id="log-count">0</span>
@@ -279,7 +144,6 @@
     <div class="empty-log">Los códigos escaneados aparecerán aquí</div>
   </div>
 
-  <!-- BOTTOM BAR -->
   <div class="bottom-bar">
     <button class="btn btn-danger" onclick="clearLog()">Borrar</button>
     <button class="btn btn-accent" onclick="downloadCSV()">⬇ Descargar CSV</button>
@@ -287,192 +151,119 @@
 
 <script>
   let records = [];
-  let streaming = false;
-  let stream = null;
-  let raf = null;
+  let scanner = null;
+  let running = false;
   let lastCode = '';
   let lastTime = 0;
-  const DEBOUNCE = 2500; // ms before same code can register again
+  const DEBOUNCE = 2500;
 
-  // ── CAMERA ──
+  function placeholder() {
+    return '<div class="cam-placeholder" onclick="toggleCamera()"><div class="cam-placeholder-icon">📷</div><p>Toque para activar la cámara</p></div>';
+  }
+
   async function toggleCamera() {
-    if (streaming) { stopCamera(); return; }
+    if (running) { await stopCamera(); return; }
+    document.getElementById('reader').innerHTML = '';
+    scanner = new Html5Qrcode('reader');
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-      });
-      const video = document.getElementById('video');
-      video.srcObject = stream;
-      await video.play();
-      streaming = true;
-
-      document.getElementById('cam-start').style.display = 'none';
-      document.getElementById('beam').style.display = 'block';
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.333 },
+        onScan,
+        () => {}
+      );
+      running = true;
       document.getElementById('rec-dot').classList.add('recording');
       document.getElementById('toggle-btn').textContent = '⏹ Detener';
-
       setStatus('idle', '—', 'Apunte a un código QR');
-      tick();
     } catch (e) {
-      alert('No se pudo acceder a la cámara.\n' + e.message);
+      console.error('Camera error:', e);
+      alert('No se pudo iniciar la cámara:\n' + e);
+      document.getElementById('reader').innerHTML = placeholder();
     }
   }
 
-  function stopCamera() {
-    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-    if (raf) { cancelAnimationFrame(raf); raf = null; }
-    streaming = false;
-
-    document.getElementById('cam-start').style.display = 'flex';
-    document.getElementById('beam').style.display = 'none';
+  async function stopCamera() {
+    try { if (scanner) { await scanner.stop(); scanner.clear(); } } catch(e) {}
+    scanner = null; running = false;
     document.getElementById('rec-dot').classList.remove('recording');
     document.getElementById('toggle-btn').textContent = '▶ Iniciar';
-
+    document.getElementById('reader').innerHTML = placeholder();
     setStatus('idle', 'Esperando código…', 'Active la cámara para comenzar');
   }
 
-  let lastTick = 0;
-
-  // ── SCAN LOOP ──
-  function tick() {
-    if (!streaming) return;
-    if (Date.now() - lastTick < 100) { raf = requestAnimationFrame(tick); return; }
-    lastTick = Date.now();
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas-hidden');
-
-    if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      ctx.drawImage(video, 0, 0);
-
-      try {
-        const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        // attemptBoth = tries normal and inverted, more reliable
-        const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
-        if (code && code.data) {
-          const now = Date.now();
-          if (code.data !== lastCode || (now - lastTime) > DEBOUNCE) {
-            lastCode = code.data;
-            lastTime = now;
-            register(code.data);
-          }
-        }
-      } catch (e) { console.error('jsQR error:', e); }
-    }
-    raf = requestAnimationFrame(tick);
-  }
-
-  // ── REGISTER ──
-  function register(value) {
-    const now = new Date();
-    const entry = { value, ts: now.toISOString() };
-    records.unshift(entry);
-
-    const timeStr = now.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const dateStr = now.toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' });
-
+  function onScan(value) {
+    const now = Date.now();
+    if (value === lastCode && (now - lastTime) < DEBOUNCE) return;
+    lastCode = value; lastTime = now;
+    const ts = new Date();
+    records.unshift({ value, ts: ts.toISOString() });
+    const timeStr = ts.toLocaleTimeString('es', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    const dateStr = ts.toLocaleDateString('es', { day:'2-digit', month:'short', year:'numeric' });
     setStatus('ok', value, timeStr + ' · ' + dateStr);
     beep();
     renderLog();
-
-    // Reset status after 2s
-    setTimeout(() => {
-      if (streaming) setStatus('idle', '—', 'Apunte a un código QR');
-    }, 2000);
+    setTimeout(() => { if (running) setStatus('idle', '—', 'Apunte a un código QR'); }, 2000);
   }
 
-  // ── UI ──
   function setStatus(type, code, time) {
-    const bar = document.getElementById('status-bar');
-    const codeEl = document.getElementById('status-code');
-    const timeEl = document.getElementById('status-time');
-
-    bar.className = 'status-bar ' + type;
-    codeEl.className = 'status-code ' + type;
-    codeEl.textContent = code;
-    timeEl.textContent = time;
-
-    const icon = bar.querySelector('.status-icon');
-    icon.textContent = type === 'ok' ? '✅' : '⬜';
+    document.getElementById('status-bar').className = 'status-bar ' + type;
+    const c = document.getElementById('status-code');
+    c.className = 'status-code ' + type;
+    c.textContent = code;
+    document.getElementById('status-time').textContent = time;
+    document.querySelector('#status-bar .status-icon').textContent = type === 'ok' ? '✅' : '⬜';
   }
 
   function renderLog() {
-    const el = document.getElementById('log-list');
     document.getElementById('log-count').textContent = records.length;
-    if (!records.length) {
-      el.innerHTML = '<div class="empty-log">Los códigos escaneados aparecerán aquí</div>';
-      return;
-    }
+    const el = document.getElementById('log-list');
+    if (!records.length) { el.innerHTML = '<div class="empty-log">Los códigos escaneados aparecerán aquí</div>'; return; }
     el.innerHTML = records.map(r => {
       const t = new Date(r.ts);
       return `<div class="log-item">
         <div class="log-code">${esc(r.value)}</div>
         <div class="log-meta">
-          <div class="log-time">${t.toLocaleTimeString('es', { hour:'2-digit', minute:'2-digit', second:'2-digit' })}</div>
-          <div class="log-date">${t.toLocaleDateString('es', { day:'2-digit', month:'short' })}</div>
+          <div class="log-time">${t.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div>
+          <div class="log-date">${t.toLocaleDateString('es',{day:'2-digit',month:'short'})}</div>
         </div>
       </div>`;
     }).join('');
   }
 
   function clearLog() {
-    if (records.length && !confirm('¿Borrar todos los registros de esta sesión?')) return;
-    records = [];
-    renderLog();
+    if (records.length && !confirm('¿Borrar todos los registros?')) return;
+    records = []; renderLog();
   }
 
-  // ── CSV ──
   function downloadCSV() {
     if (!records.length) { alert('No hay registros para descargar.'); return; }
-
-    const rows = [['Código', 'Fecha', 'Hora']];
+    const rows = [['Código','Fecha','Hora']];
     records.forEach(r => {
       const t = new Date(r.ts);
-      rows.push([
-        r.value,
-        t.toLocaleDateString('es'),
-        t.toLocaleTimeString('es', { hour:'2-digit', minute:'2-digit', second:'2-digit' })
-      ]);
+      rows.push([r.value, t.toLocaleDateString('es'), t.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit',second:'2-digit'})]);
     });
-
-    const csv = rows.map(row =>
-      row.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')
-    ).join('\r\n');
-
-    // Filename with current date+time
+    const csv = rows.map(row => row.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
     const now = new Date();
-    const stamp = now.getFullYear()
-      + '-' + pad2(now.getMonth() + 1)
-      + '-' + pad2(now.getDate())
-      + '_' + pad2(now.getHours())
-      + '-' + pad2(now.getMinutes());
-
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    const stamp = now.getFullYear()+'-'+p2(now.getMonth()+1)+'-'+p2(now.getDate())+'_'+p2(now.getHours())+'-'+p2(now.getMinutes());
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'registro_' + stamp + '.csv';
-    a.click();
+    a.href = URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));
+    a.download = 'registro_'+stamp+'.csv'; a.click();
   }
 
-  // ── AUDIO ──
   function beep() {
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.connect(g); g.connect(ctx.destination);
-      osc.frequency.value = 1047;
-      osc.type = 'sine';
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = 1047; o.type = 'sine';
       g.gain.setValueAtTime(0.2, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-      osc.start(); osc.stop(ctx.currentTime + 0.1);
-    } catch (e) {}
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.1);
+      o.start(); o.stop(ctx.currentTime+0.1);
+    } catch(e) {}
   }
 
-  // ── UTILS ──
-  function pad2(n) { return String(n).padStart(2, '0'); }
+  function p2(n) { return String(n).padStart(2,'0'); }
   function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 </script>
 </body>
